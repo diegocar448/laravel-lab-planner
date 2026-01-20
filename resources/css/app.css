@@ -1,0 +1,46 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+/* Dark mode toggle via class */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Alpine.js cloak - hide elements until Alpine is ready */
+[x-cloak] {
+    display: none !important;
+}
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Primary Colors */
+    --color-primary-lighter: #FFF0EF;
+    --color-primary-light: #FFE1E0;
+    --color-primary: #F5332C;
+    --color-primary-dark: #E7231C;
+    --color-primary-darker: #BF1A14;
+
+    /* Overlay Colors */
+    --color-overlay: #BF1A14;
+    --color-overlay-dark: #00000099;
+    --color-overlay-darker: #000000CC;
+
+    /* Neutral Colors */
+    --color-neutral-1200: #090A0B;
+    --color-neutral-1100: #101114;
+    --color-neutral-1000: #202328;
+    --color-neutral-900: #31363F;
+    --color-neutral-800: #454A54;
+    --color-neutral-700: #5A606C;
+    --color-neutral-600: #727988;
+    --color-neutral-500: #848B9A;
+    --color-neutral-400: #9EA5B3;
+    --color-neutral-300: #B6BDC8;
+    --color-neutral-200: #D3D7DF;
+    --color-neutral-100: #E4E7EC;
+    --color-neutral-50: #F9FAFB;
+}

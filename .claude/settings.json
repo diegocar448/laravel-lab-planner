@@ -1,0 +1,6 @@
+{
+  "enabledPlugins": {
+    "laravel-simplifier@laravel": true,
+    "serena@claude-plugins-official": true
+  }
+}
