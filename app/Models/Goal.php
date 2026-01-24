@@ -34,9 +34,9 @@ class Goal extends Model
         return $this->belongsTo(GoalSituation::class);
     }
 
-    public function diagnosis(): HasOne
+    public function diagnoses(): HasMany
     {
-        return $this->hasOne(Diagnosis::class);
+        return $this->hasMany(Diagnosis::class);
     }
 
     public function tasks(): HasMany
