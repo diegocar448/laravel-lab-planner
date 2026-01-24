@@ -3,17 +3,54 @@
 use App\Enums\DiagnosisItemTypeEnum;
 use App\Enums\DiagnosisPillarEnum;
 use App\Models\Diagnosis;
+use App\Services\AgentDiagnosisService;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 new class extends Component {
 
     public Diagnosis $diagnosis;
+    protected AgentDiagnosisService $agentDiagnosisService;
+
+    public function boot(AgentDiagnosisService $agentDiagnosisService)
+    {
+        $this->agentDiagnosisService = $agentDiagnosisService;
+    }
 
     public function mount(Diagnosis $diagnosis)
     {
         $this->diagnosis = $diagnosis->load('goal', 'diagnosisItems.diagnosisItemType', 'diagnosisItems.diagnosisPillar');
         abort_if($this->diagnosis->goal->user_id !== auth()->id(), 403);
 
+        if (!$this->diagnosis->description) {
+            $this->dispatch('generateDiagnostic');
+        }
+
+    }
+
+    public function selectItem($item_id)
+    {
+        $item = $this->diagnosis->diagnosisItems()->where('id', $item_id)->first();
+
+        $this->diagnosis->diagnosisItems()->where('diagnosis_pillar_id', $item->diagnosis_pillar_id)
+            ->update(['user_selected_at' => null]);
+
+        $item->update(['user_selected_at' => now()]);
+    }
+
+    #[On('generateDiagnostic')]
+    public function generateDiagnostic()
+    {
+        $response = $this->agentDiagnosisService->generate($this->diagnosis);
+
+        $this->diagnosis->description = $response->structured['diagnosis'];
+        $this->diagnosis->save();
+
+        $this->diagnosis->diagnosisItems()->update(['agent_selected_at' => null]);
+        $this->diagnosis->diagnosisItems()->whereIn('id', $response->structured['diagnosis_items_ids'])
+            ->update(['agent_selected_at' => now()]);
+
+        $this->diagnosis->refresh();
     }
 };
 ?>
