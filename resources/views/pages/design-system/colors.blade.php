@@ -8,7 +8,6 @@ new
 #[Layout('layouts.design-system')]
 #[Title('Colors')]
 class extends Component {
-    //
 };
 ?>
 
