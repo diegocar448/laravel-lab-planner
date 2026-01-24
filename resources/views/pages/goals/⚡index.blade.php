@@ -51,6 +51,26 @@ new class extends Component {
     {
         $this->showDiagnosisModal = true;
     }
+
+    public function addItem($pillar, $type)
+    {
+        $this->form->addItem($pillar, $type, $this->diagnosis);
+    }
+
+    public function removeItem($item_id)
+    {
+        $this->form->removeItem($item_id);
+    }
+
+    public function confirmDiagnosis()
+    {
+        $this->diagnosis->diagnosis_status_id = DiagnosisStatusEnum::InProgress;
+        $this->diagnosis->save();
+        $this->redirect(
+            route('diagnosis.index', $this->diagnosis->id),
+            navigate: true
+        );
+    }
 };
 ?>
 
@@ -99,7 +119,8 @@ new class extends Component {
                         @if ($itemDiagnosis->diagnosis_status_id == 1)
                             <x-button class="cursor-pointer" wire:click="newDiagnosis" size="sm">Completar</x-button>
                         @else
-                            {{--                            <x-button :href="route('diagnosis.index', $itemDiagnosis->id)" size="sm">Acompanhar</x-button>--}}
+                            <x-button :href="route('diagnosis.index', $itemDiagnosis->id)" size="sm">Acompanhar
+                            </x-button>
                         @endif
                     </div>
                 </x-card.body>

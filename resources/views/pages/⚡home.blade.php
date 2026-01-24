@@ -120,10 +120,10 @@ class extends Component {
 
         <x-slot:footer>
             <div class="flex justify-end gap-3">
-                <x-button variant="secondary" wire:click="toggleModal">
+                <x-button variant="secondary" wire:click="toggleModal" wire:loading.attr="disabled" wire:target="storeGoal">
                     Cancelar
                 </x-button>
-                <x-button wire:click="storeGoal">
+                <x-button wire:click="storeGoal" wire:loading.attr="disabled">
                     Confirmar
                 </x-button>
             </div>

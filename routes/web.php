@@ -8,6 +8,10 @@ Route::livewire('/goal/{goal}', 'pages::goals.index')
     ->middleware('auth')
     ->name('goals.index');
 
+Route::livewire('/diagnosis/{diagnosis}', 'pages::diagnosis.index')
+    ->middleware('auth')
+    ->name('diagnosis.index');
+
 // Auth Routes
 Route::middleware('guest')->group(function () {
     Route::livewire('/login', 'pages::auth.login')->name('login');

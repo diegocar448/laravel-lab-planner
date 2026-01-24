@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\DiagnosisItemTypeEnum;
+use App\Enums\DiagnosisPillarEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -21,6 +23,8 @@ class DiagnosisItem extends Model
         return [
             'agent_selected_at' => 'datetime',
             'user_selected_at' => 'datetime',
+            'diagnosis_item_type_id' => DiagnosisItemTypeEnum::class,
+            'diagnosis_pillar_id' => DiagnosisPillarEnum::class,
         ];
     }
 
