@@ -2,23 +2,16 @@
 
 use App\Enums\DiagnosisItemTypeEnum;
 use App\Enums\DiagnosisPillarEnum;
+use App\Jobs\GenerateDiagnosisJob;
+use App\Jobs\GeneratePlannerJob;
 use App\Models\Diagnosis;
-use App\Services\AgentDiagnosisService;
-use App\Services\AgentPlannerService;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 new class extends Component {
 
     public Diagnosis $diagnosis;
-    protected AgentDiagnosisService $agentDiagnosisService;
-    protected AgentPlannerService $agentPlannerService;
-
-    public function boot(AgentDiagnosisService $agentDiagnosisService, AgentPlannerService $agentPlannerService)
-    {
-        $this->agentDiagnosisService = $agentDiagnosisService;
-        $this->agentPlannerService = $agentPlannerService;
-    }
 
     public function mount(Diagnosis $diagnosis)
     {
@@ -28,7 +21,6 @@ new class extends Component {
         if (!$this->diagnosis->description) {
             $this->dispatch('generateDiagnostic');
         }
-
     }
 
     public function selectItem($item_id)
@@ -41,24 +33,31 @@ new class extends Component {
         $item->update(['user_selected_at' => now()]);
     }
 
+    #[Computed]
+    public function canCreateActionPlan(): bool
+    {
+        return is_null(auth()->user()->planner_created_at);
+    }
+
     public function generateActionPlan()
     {
-        $this->agentPlannerService->generate($this->diagnosis);
+        if (!$this->canCreateActionPlan) {
+            return;
+        }
+
+        auth()->user()->update(['planner_created_at' => now()]);
+
+        dispatch(new GeneratePlannerJob($this->diagnosis));
+
+        $this->redirect(route('kanban'), navigate: true);
     }
 
     #[On('generateDiagnostic')]
     public function generateDiagnostic()
     {
-        $response = $this->agentDiagnosisService->generate($this->diagnosis);
+        auth()->user()->update(['diagnosis_created_at' => now()]);
 
-        $this->diagnosis->description = $response->structured['diagnosis'];
-        $this->diagnosis->save();
-
-        $this->diagnosis->diagnosisItems()->update(['agent_selected_at' => null]);
-        $this->diagnosis->diagnosisItems()->whereIn('id', $response->structured['diagnosis_items_ids'])
-            ->update(['agent_selected_at' => now()]);
-
-        $this->diagnosis->refresh();
+        dispatch(new GenerateDiagnosisJob($this->diagnosis));
     }
 };
 ?>
@@ -83,6 +82,8 @@ new class extends Component {
                 variant="primary"
                 class="cursor-pointer"
                 wire:click="generateActionPlan"
+                :disabled="!$this->canCreateActionPlan"
+                wire:loading.attr="disabled"
         >
             <x-slot:iconLeft>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"

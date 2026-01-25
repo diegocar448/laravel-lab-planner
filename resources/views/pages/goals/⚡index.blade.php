@@ -31,20 +31,9 @@ new class extends Component {
     }
 
     #[Computed]
-    public function canCreateDiagnosis()
+    public function canCreateDiagnosis(): bool
     {
-
-        $lastDiagnosis = $this->goal
-            ->diagnoses()
-            ->latest('created_at')
-            ->first();
-
-
-        if (!$lastDiagnosis) {
-            return true;
-        }
-
-        return $lastDiagnosis->created_at->diffInWeeks(now()) >= 12;
+        return is_null(auth()->user()->diagnosis_created_at);
     }
 
     public function newDiagnosis()
