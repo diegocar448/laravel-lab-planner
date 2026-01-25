@@ -4,6 +4,7 @@ use App\Enums\DiagnosisItemTypeEnum;
 use App\Enums\DiagnosisPillarEnum;
 use App\Models\Diagnosis;
 use App\Services\AgentDiagnosisService;
+use App\Services\AgentPlannerService;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -11,10 +12,12 @@ new class extends Component {
 
     public Diagnosis $diagnosis;
     protected AgentDiagnosisService $agentDiagnosisService;
+    protected AgentPlannerService $agentPlannerService;
 
-    public function boot(AgentDiagnosisService $agentDiagnosisService)
+    public function boot(AgentDiagnosisService $agentDiagnosisService, AgentPlannerService $agentPlannerService)
     {
         $this->agentDiagnosisService = $agentDiagnosisService;
+        $this->agentPlannerService = $agentPlannerService;
     }
 
     public function mount(Diagnosis $diagnosis)
@@ -36,6 +39,11 @@ new class extends Component {
             ->update(['user_selected_at' => null]);
 
         $item->update(['user_selected_at' => now()]);
+    }
+
+    public function generateActionPlan()
+    {
+        $this->agentPlannerService->generate($this->diagnosis);
     }
 
     #[On('generateDiagnostic')]
