@@ -26,7 +26,7 @@ new class extends Component {
             return false;
         }
 
-        return Task::forCurrentUser()->count() === 0;
+        return Task::query()->forCurrentUser()->count() === 0;
     }
 
     public function moveTaskBacklog($taskId, $newPosition)
