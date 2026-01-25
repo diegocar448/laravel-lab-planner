@@ -71,12 +71,10 @@ class AgentPlannerService
                 $this->technicalDeepDive(),
                 $this->strategyAndPlaning(),
                 $this->behavioralAndSoftSkills(),
+                $this->storeTasks($diagnosis->goal_id)
             ])
             ->withClientOptions(['timeout' => 120])
             ->asStructured();
-
-
-        dd($response);
 
     }
     

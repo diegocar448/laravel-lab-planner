@@ -2,9 +2,15 @@
 
 namespace App\Traits;
 
+use App\Models\LessonEmbedding;
+use App\Models\Task;
+use Illuminate\Support\Facades\Log;
+use Pgvector\Laravel\Distance;
 use Prism\Prism\Enums\Provider;
 use Prism\Prism\Facades\Prism;
 use Prism\Prism\Facades\Tool;
+use Prism\Prism\Schema\ObjectSchema;
+use Prism\Prism\Schema\StringSchema;
 use function view;
 
 trait HasAgentTools
@@ -87,11 +93,62 @@ trait HasAgentTools
 
     public function searchKnowledgeBase()
     {
-        //consultar no banco de dados via embeddings e busca semantica a base de conhecimento
+        return Tool::as('search_knowledge_base')
+            ->for('Faz busca na base de conhecimento repleta de aulas tecnicas, estrategicas e comportamentais')
+            ->withStringParameter('query', 'Query para busca em base de embeedings com L2 Distance')
+            ->using(function (string $query) {
+                Log::info('Query: ' . $query);
+
+                $response = Prism::embeddings()
+                    ->using(Provider::OpenAI, 'text-embedding-3-small')
+                    ->fromInput($query)
+                    ->asEmbeddings();
+
+                $embedding = $response->embeddings[0]->embedding;
+
+                return LessonEmbedding::query()
+                    ->nearestNeighbors('embedding', $embedding, Distance::L2)
+                    ->take(15)
+                    ->get()->toJson();
+
+            });
     }
 
     public function storeTasks($goal_id)
     {
-        //armazenar as tarefas no banco de dados
+        return Tool::as('store_tasks')
+            ->for('Armazena um array de tarefas no banco de dados para uma meta específica')
+            ->withArrayParameter('tasks', 'Array de tarefas contendo title, task_type_id e week_prevision', new ObjectSchema(
+                name: 'task',
+                description: 'Estrutura da tarefa para o plano de acao',
+                properties: [
+                    new StringSchema(name: 'title', description: 'Titulo da tarefa para o plano de acao'),
+                    new StringSchema(name: 'task_type_id', description: 'O ID numérico correspondente (Hábito ou Tarefa Única)'),
+                    new StringSchema(name: 'week_prevision', description: 'Previsão de qual semana é melhor de aplicar a tarefa')
+                ],
+                requiredFields: ['title', 'task_type_id', 'week_prevision']
+            ))
+            ->using(function(array $tasks) use ($goal_id) {
+
+                Log::info('Total de Tasks: ' . count($tasks));
+
+                $createdTasks = [];
+
+                foreach ($tasks as $index => $task) {
+
+                    $createdTasks[] = Task::create([
+                        'goal_id' => $goal_id,
+                        'title' => $task['title'],
+                        'task_type_id' => $task['task_type_id'],
+                        'week_prevision' => $task['week_prevision'],
+                        'task_step_id' => 1,
+                        'order' => $index,
+                    ]);
+
+                }
+
+                return 'Tarefas criadas com sucesso: ' . count($createdTasks);
+
+            });
     }
 }

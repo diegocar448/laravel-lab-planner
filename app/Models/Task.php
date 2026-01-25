@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -41,5 +42,11 @@ class Task extends Model
     public function taskStep(): BelongsTo
     {
         return $this->belongsTo(TaskSteps::class, 'task_step_id');
+    }
+
+    #[Scope]
+    public function forCurrentuser($query)
+    {
+        return $query->whereHas('goal', fn($q) => $q->where('user_id', auth()->id()));
     }
 }

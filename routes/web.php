@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 Route::livewire('/', 'pages::home')->middleware('auth')->name('home');
+Route::livewire('/kanban', 'pages::kanban')->middleware('auth')->name('kanban');
 
 Route::livewire('/goal/{goal}', 'pages::goals.index')
     ->middleware('auth')
