@@ -25,6 +25,11 @@ Route::post('/logout', function () {
     return redirect('/');
 })->name('logout');
 
+// Admin Routes
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+    Route::livewire('/users', 'pages::admin.users')->name('users');
+});
+
 // Design System
 Route::prefix('design-system')->name('design-system.')->group(function () {
     Route::livewire('/', 'pages::design-system.index')->name('index');

@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'phone',
         'password',
+        'is_admin',
         'diagnosis_created_at',
         'planner_created_at',
     ];
@@ -49,7 +50,13 @@ class User extends Authenticatable
             'diagnosis_created_at' => 'datetime',
             'planner_created_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->is_admin;
     }
 
     public function goals(): HasMany
