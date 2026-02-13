@@ -31,8 +31,10 @@ class GenerateDiagnosisJob implements ShouldQueue
 
         $this->diagnosis->diagnosisItems()->update(['agent_selected_at' => null]);
 
+        $ids = collect($response->structured['diagnosis_items_ids'])->flatten()->all();
+
         $this->diagnosis->diagnosisItems()
-            ->whereIn('id', $response->structured['diagnosis_items_ids'])
+            ->whereIn('id', $ids)
             ->update(['agent_selected_at' => now()]);
 
         Log::info("Finalizado diagnóstico {$this->diagnosis->id}");

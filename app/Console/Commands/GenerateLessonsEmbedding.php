@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Prism\Prism\Enums\Provider;
 use Prism\Prism\Facades\Prism;
-use function array_key_last;
+
 use function count;
 use function sprintf;
 use function strlen;
@@ -56,26 +56,19 @@ class GenerateLessonsEmbedding extends Command
 
             $chunks = $this->createChunks($data['segments'], 800, 200);
 
-            foreach (array_chunk($chunks, 20) as $batch) {
-                $texts = array_column($batch, 'content');
-
+            foreach ($chunks as $chunk) {
                 $response = Prism::embeddings()
-                    ->using(Provider::OpenAI, 'text-embedding-3-small')
-                    ->fromArray($texts)
+                    ->using(Provider::Gemini, 'gemini-embedding-001')
+                    ->fromInput($chunk['content'])
                     ->asEmbeddings();
 
-
-                foreach($batch as $index => $chunk)
-                {
-                    LessonEmbedding::create([
-                        'name' => $lessonName,
-                        'content' => $chunk['content'],
-                        'start' => $chunk['start'],
-                        'end' => $chunk['end'],
-                        'embedding' => $response->embeddings[$index]->embedding
-                    ]);
-                }
-
+                LessonEmbedding::create([
+                    'name' => $lessonName,
+                    'content' => $chunk['content'],
+                    'start' => $chunk['start'],
+                    'end' => $chunk['end'],
+                    'embedding' => $response->embeddings[0]->embedding,
+                ]);
             }
 
             $progressBar->advance();
@@ -83,7 +76,6 @@ class GenerateLessonsEmbedding extends Command
 
         $progressBar->finish();
     }
-
 
     private function createChunks(array $segments, int $chunkSize, int $overlap): array
     {

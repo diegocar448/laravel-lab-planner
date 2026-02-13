@@ -11,7 +11,6 @@ use Prism\Prism\Schema\StringSchema;
 
 class AgentDiagnosisService
 {
-
     public function diagnosisOutputSchema(): ObjectSchema
     {
         return new ObjectSchema(
@@ -26,7 +25,7 @@ class AgentDiagnosisService
                         name: 'diagnosis_item_id',
                         description: 'O id numerico do item que precisa ser melhorado'
                     )
-                )
+                ),
             ],
             requiredFields: ['diagnosis', 'diagnosis_items_ids'],
         );
@@ -36,7 +35,7 @@ class AgentDiagnosisService
     {
         $diagnosis->load('goal', 'diagnosisItems.diagnosisItemType', 'diagnosisItems.diagnosisPillar');
         $response = Prism::structured()
-            ->using(Provider::OpenAI, 'gpt-5-mini')
+            ->using(Provider::Groq, 'llama-3.3-70b-versatile')
             ->withSchema($this->diagnosisOutputSchema())
             ->withSystemPrompt(view('prompts.diagnosis-system-prompt'))
             ->withPrompt($diagnosis->toJson())
@@ -45,5 +44,4 @@ class AgentDiagnosisService
 
         return $response;
     }
-    
 }

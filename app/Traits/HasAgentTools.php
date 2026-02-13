@@ -11,6 +11,7 @@ use Prism\Prism\Facades\Prism;
 use Prism\Prism\Facades\Tool;
 use Prism\Prism\Schema\ObjectSchema;
 use Prism\Prism\Schema\StringSchema;
+
 use function view;
 
 trait HasAgentTools
@@ -22,10 +23,10 @@ trait HasAgentTools
             ->withStringParameter('goal', 'A descrição da meta do usuario')
             ->withStringParameter('deadline', 'A data final esperada do usuario')
             ->withStringParameter('technical_focus', 'Qual o principal problema tecnico que o usuario ira focar')
-            ->using(function (string $goal, string $deadline, string $technical_focus){
+            ->using(function (string $goal, string $deadline, string $technical_focus) {
 
                 return Prism::text()
-                    ->using(Provider::OpenAI, 'gpt-4.1-mini')
+                    ->using(Provider::Groq, 'llama-3.3-70b-versatile')
                     ->withSystemPrompt(view('prompts.technical-deep-dive'))
                     ->withPrompt(view('prompts.execution-technical-deep-dive', [
                         'goal' => $goal,
@@ -51,7 +52,7 @@ trait HasAgentTools
             ->using(function (string $goal, string $deadline, string $strategic_focus) {
 
                 return Prism::text()
-                    ->using(Provider::OpenAI, 'gpt-4.1-mini')
+                    ->using(Provider::Groq, 'llama-3.3-70b-versatile')
                     ->withSystemPrompt(view('prompts.strategy-and-planning', ['goal' => $goal, 'strategy_focus' => $strategic_focus]))
                     ->withPrompt(view('prompts.execution-strategy-and-planning', [
                         'goal' => $goal,
@@ -76,7 +77,7 @@ trait HasAgentTools
             ->using(function (string $goal, string $deadline, string $behavioral_focus) {
 
                 return Prism::text()
-                    ->using(Provider::OpenAI, 'gpt-4.1-mini')
+                    ->using(Provider::Groq, 'llama-3.3-70b-versatile')
                     ->withSystemPrompt(view('prompts.technical-deep-dive'))
                     ->withPrompt(view('prompts.execution-behavioral-and-soft-skills', [
                         'goal' => $goal,
@@ -97,10 +98,10 @@ trait HasAgentTools
             ->for('Faz busca na base de conhecimento repleta de aulas tecnicas, estrategicas e comportamentais')
             ->withStringParameter('query', 'Query para busca em base de embeedings com L2 Distance')
             ->using(function (string $query) {
-                Log::info('Query: ' . $query);
+                Log::info('Query: '.$query);
 
                 $response = Prism::embeddings()
-                    ->using(Provider::OpenAI, 'text-embedding-3-small')
+                    ->using(Provider::Gemini, 'gemini-embedding-001')
                     ->fromInput($query)
                     ->asEmbeddings();
 
@@ -124,13 +125,13 @@ trait HasAgentTools
                 properties: [
                     new StringSchema(name: 'title', description: 'Titulo da tarefa para o plano de acao'),
                     new StringSchema(name: 'task_type_id', description: 'O ID numérico correspondente (Hábito ou Tarefa Única)'),
-                    new StringSchema(name: 'week_prevision', description: 'Previsão de qual semana é melhor de aplicar a tarefa')
+                    new StringSchema(name: 'week_prevision', description: 'Previsão de qual semana é melhor de aplicar a tarefa'),
                 ],
                 requiredFields: ['title', 'task_type_id', 'week_prevision']
             ))
-            ->using(function(array $tasks) use ($goal_id) {
+            ->using(function (array $tasks) use ($goal_id) {
 
-                Log::info('Total de Tasks: ' . count($tasks));
+                Log::info('Total de Tasks: '.count($tasks));
 
                 $createdTasks = [];
 
@@ -147,7 +148,7 @@ trait HasAgentTools
 
                 }
 
-                return 'Tarefas criadas com sucesso: ' . count($createdTasks);
+                return 'Tarefas criadas com sucesso: '.count($createdTasks);
 
             });
     }

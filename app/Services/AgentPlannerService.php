@@ -14,7 +14,6 @@ use Prism\Prism\Schema\StringSchema;
 
 class AgentPlannerService
 {
-
     use HasAgentTools;
 
     public function plannerOutputSchema(): ObjectSchema
@@ -32,11 +31,11 @@ class AgentPlannerService
                         properties: [
                             new StringSchema(name: 'title', description: 'Titulo da tarefa para o plano de acao'),
                             new StringSchema(name: 'task_type_id', description: 'O ID numérico correspondente (Hábito ou Tarefa Única)'),
-                            new StringSchema(name: 'week_prevision', description: 'Previsão de qual semana é melhor de aplicar a tarefa')
+                            new StringSchema(name: 'week_prevision', description: 'Previsão de qual semana é melhor de aplicar a tarefa'),
                         ],
                         requiredFields: ['title', 'task_type_id', 'week_prevision']
                     )
-                )
+                ),
             ],
             requiredFields: ['tasks']
         );
@@ -48,7 +47,7 @@ class AgentPlannerService
         $diagnosis->load('goal', 'diagnosisItems.diagnosisItemType', 'diagnosisItems.diagnosisPillar');
 
         $response = Prism::structured()
-            ->using(Provider::OpenAI, 'gpt-5-mini')
+            ->using(Provider::Groq, 'llama-3.3-70b-versatile')
             ->withSchema($this->plannerOutputSchema())
             ->withSystemPrompt(view('prompts.beer-and-code-mentor', ['task_type' => TaskType::all()]))
             ->withPrompt(view('prompts.execution-beer-and-code-mentor', [
@@ -64,18 +63,17 @@ class AgentPlannerService
                 'behavioral_focus' => $diagnosis->diagnosisItems
                     ->where('diagnosis_pillar_id', DiagnosisPillarEnum::Behavioral)
                     ->whereNotNull('user_selected_at')->first()->description,
-                'situation' => $diagnosis->description
+                'situation' => $diagnosis->description,
             ]))
             ->withMaxSteps(5)
             ->withTools([
                 $this->technicalDeepDive(),
                 $this->strategyAndPlaning(),
                 $this->behavioralAndSoftSkills(),
-                $this->storeTasks($diagnosis->goal_id)
+                $this->storeTasks($diagnosis->goal_id),
             ])
             ->withClientOptions(['timeout' => 120])
             ->asStructured();
 
     }
-    
 }
